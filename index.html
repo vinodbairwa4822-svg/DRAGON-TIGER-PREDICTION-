@@ -50,8 +50,19 @@ function handToHandAnalysis(results) {
     return repeats;
 }
 
+// ✅ FIX 1: Division by Zero Error को रोका गया
 function calculatePercentages(repeats) {
     let total = repeats.D + repeats.T + repeats.H;
+    
+    // अगर कुल रिपीट 0 है, तो 0.00% रिटर्न करें
+    if (total === 0) {
+        return {
+            D: "0.00",
+            T: "0.00",
+            H: "0.00"
+        };
+    }
+
     return {
         D: ((repeats.D / total) * 100).toFixed(2),
         T: ((repeats.T / total) * 100).toFixed(2),
@@ -75,8 +86,20 @@ function predictNext(results) {
     let patterns = detectPatterns(results);
     let sortedPatterns = Object.entries(patterns).sort((a,b) => b[1] - a[1]);
 
-    let maxProb = Math.max(probabilities.D, probabilities.T, probabilities.H);
-    let predicted = Object.keys(probabilities).find(k => probabilities[k] == maxProb);
+    // ✅ FIX 2: String से Number में बदलकर तुलना की गई
+    let numProbabilities = {
+        D: parseFloat(probabilities.D),
+        T: parseFloat(probabilities.T),
+        H: parseFloat(probabilities.H)
+    };
+
+    let maxProb = Math.max(numProbabilities.D, numProbabilities.T, numProbabilities.H);
+    
+    // अधिकतम प्रोबेबिलिटी वाला रिजल्ट ढूँढें
+    let predicted = Object.keys(numProbabilities).find(k => numProbabilities[k] == maxProb);
+
+    // अगर कोई प्रेडिक्शन नहीं है (सभी 0%) तो 'D' को डिफ़ॉल्ट प्रेडिक्शन रखें।
+    if (!predicted) predicted = 'D'; 
 
     let betStrategy = bettingStrategy(probabilities, predicted);
 
@@ -84,7 +107,8 @@ function predictNext(results) {
 }
 
 function bettingStrategy(probabilities, predicted) {
-    let chance = probabilities[predicted];
+    // यहाँ भी String को Number में बदलकर तुलना की जा रही है
+    let chance = parseFloat(probabilities[predicted]); 
     if (chance > 75) return "TRIPLE BET";
     if (chance > 60) return "DOUBLE BET";
     return "SINGLE BET";
