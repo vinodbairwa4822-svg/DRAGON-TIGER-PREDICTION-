@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Styled Page</title>
+    <title>Dragon Tiger Predictor</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -49,11 +49,35 @@
             padding: 1em 0;
             margin-top: auto;
         }
+        .buttons {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+        }
+        .buttons button:hover {
+            opacity: 0.9;
+        }
+        .dragon { background-color: #4CAF50; color: white; }
+        .tiger { background-color: #f44336; color: white; }
+        .tie { background-color: #ff9800; color: white; }
+        #history {
+            background: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            min-height: 50px;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>Welcome to My Page</h1>
+        <h1>Dragon Tiger Predictor</h1>
     </header>
 
     <nav>
@@ -64,21 +88,27 @@
     </nav>
 
     <div class="container">
-        <h2>Main Content Area</h2>
-        <p>This is where your primary content will go. You can add text, images, and other elements here.</p>
-        <p>Feel free to modify the text and add more sections as needed. The styles are set up to give a clean and readable layout.</p>
-        
-        <h3>Another Section</h3>
-        <p>You can create multiple sections within the container to organize your information effectively.</p>
-        <ul>
-            <li>Item One</li>
-            <li>Item Two</li>
-            <li>Item Three</li>
-        </ul>
+        <h2>Enter Results</h2>
+        <div class="buttons">
+            <button class="dragon" onclick="addResult('Dragon (D)')">Dragon</button>
+            <button class="tiger" onclick="addResult('Tiger (T)')">Tiger</button>
+            <button class="tie" onclick="addResult('Tie (H)')">Tie</button>
+        </div>
+        <h3>History</h3>
+        <div id="history">No entries yet.</div>
     </div>
 
     <footer>
-        <p>&copy; 2023 My Styled Page. All rights reserved.</p>
+        <p>&copy; 2025 Dragon Tiger Predictor. All rights reserved.</p>
     </footer>
+
+    <script>
+        let historyList = [];
+
+        function addResult(result) {
+            historyList.push(result);
+            document.getElementById("history").innerText = historyList.join(", ");
+        }
+    </script>
 </body>
 </html>
