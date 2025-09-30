@@ -1,151 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dragon Tiger Smart Predictor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Styled Page</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 450px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
-        button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
-        #main-controls button { background-color: #f44336; color: white; width: 100%; margin: 10px 0; }
-        #history-text { font-size: 1.1em; color: #333; word-break: break-all; }
-        #prediction-text { font-size: 2em; font-weight: bold; color: #008CBA; margin-top: 10px; }
-        h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px; }
-        .data-stats { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 10px; padding: 5px; border: 1px dashed #ddd; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 1em 0;
+            text-align: center;
+        }
+        nav {
+            background-color: #555;
+            color: white;
+            padding: 0.5em 0;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0 1em;
+        }
+        nav a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            flex-grow: 1;
+            padding: 2em;
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Welcome to My Page</h1>
+    </header>
 
-<div class="container">
+    <nav>
+        <a href="#">Home</a>
+        <a href="#">About</a>
+        <a href="#">Services</a>
+        <a href="#">Contact</a>
+    </nav>
 
-    <div id="main-controls">
-        <button onclick="addRandomResult()">Add Next Result (Random D/T/H)</button>
-    </div>
-    
-    <hr>
-
-    <div id="stats">
-        <h3>डेटा सारांश (D/T/H)</h3>
-        <div class="data-stats">
-            <span id="dt-count">D/T परिणाम: 0</span>
-            <span id="d-percent">D %: 0%</span>
-            <span id="t-percent">T %: 0%</span>
-        </div>
-    </div>
-    
-    <div id="history">
-        <h3>History (पिछले 20 D/T):</h3>
-        <p id="history-text">कोई परिणाम नहीं...</p>
-    </div>
-
-    <div id="prediction">
-        <h3>Smart Prediction:</h3>
-        <p id="prediction-text">परिणाम जोड़कर ट्रेंड शुरू करें...</p>
+    <div class="container">
+        <h2>Main Content Area</h2>
+        <p>This is where your primary content will go. You can add text, images, and other elements here.</p>
+        <p>Feel free to modify the text and add more sections as needed. The styles are set up to give a clean and readable layout.</p>
+        
+        <h3>Another Section</h3>
+        <p>You can create multiple sections within the container to organize your information effectively.</p>
+        <ul>
+            <li>Item One</li>
+            <li>Item Two</li>
+            <li>Item Three</li>
+        </ul>
     </div>
 
-</div>
-
-<script>
-    let fullHistory = []; // सभी D, T, H को स्टोर करने के लिए
-    const MAX_DT_ENTRIES = 25; // अधिकतम D/T एंट्री
-
-    // यह फ़ंक्शन D, T, या H में से एक Randomly चुनता है (Tie 10% संभावना)
-    function getRandomResult() {
-        const rand = Math.random();
-        if (rand < 0.45) return 'D';
-        if (rand < 0.90) return 'T';
-        return 'H'; // 10% chance for H
-    }
-
-    // परिणाम (Result) जोड़ने का मुख्य फ़ंक्शन (Randomly)
-    function addRandomResult() {
-        const newResult = getRandomResult();
-        fullHistory.push(newResult);
-        
-        // डेटा कैपिंग लॉजिक
-        let dtHistory = fullHistory.filter(r => r !== 'H');
-        
-        if (dtHistory.length > MAX_DT_ENTRIES) {
-            // 25 से ज़्यादा होने पर, सबसे पुराने 5 D/T परिणामों को हटा दें
-            const deleteCount = dtHistory.length - (MAX_DT_ENTRIES - 5); // 25 होने पर 5 डिलीट होंगे
-            for (let i = 0; i < deleteCount; i++) {
-                // fullHistory से भी सबसे पुराना D/T हटाएँ
-                const indexToRemove = fullHistory.findIndex(r => r !== 'H');
-                if (indexToRemove !== -1) {
-                    fullHistory.splice(indexToRemove, 1);
-                }
-            }
-        }
-
-        updateDisplayAndPredict();
-    }
-
-    // डिस्प्ले और सांख्यिकी (Stats) अपडेट करना
-    function updateDisplayAndPredict() {
-        // D/T इतिहास, अधिकतम 20 ही दिखाएंगे
-        const dtHistory = fullHistory.filter(r => r !== 'H');
-        const displayHistory = dtHistory.slice(-20); // आखिरी 20 D/T दिखाएँ
-        
-        document.getElementById('history-text').textContent = displayHistory.join(' → ');
-        
-        // सांख्यिकी (Stats) कैलकुलेट करना
-        const dCount = dtHistory.filter(r => r === 'D').length;
-        const tCount = dtHistory.filter(r => r === 'T').length;
-        const totalDT = dCount + tCount;
-
-        document.getElementById('dt-count').textContent = `D/T परिणाम: ${totalDT}`;
-        document.getElementById('d-percent').textContent = `D %: ${totalDT > 0 ? ((dCount / totalDT) * 100).toFixed(1) : 0}%`;
-        document.getElementById('t-percent').textContent = `T %: ${totalDT > 0 ? ((tCount / totalDT) * 100).toFixed(1) : 0}%`;
-
-        // प्रेडिक्शन लॉजिक
-        if (totalDT >= 3) {
-            const prediction = getSmartPrediction(dtHistory);
-            document.getElementById('prediction-text').textContent = prediction;
-        } else {
-            document.getElementById('prediction-text').textContent = 'कम से कम 3 D/T परिणाम जोड़ें...';
-        }
-    }
-
-    // स्मार्ट प्रेडिक्शन लॉजिक (सबसे महत्वपूर्ण हिस्सा!)
-    function getSmartPrediction(lastFiveDT) {
-        if (lastFiveDT.length < 3) return 'और परिणाम चाहिए (कम से कम 3 D/T)';
-
-        const last = lastFiveDT[lastFiveDT.length - 1];
-        const secondLast = lastFiveDT[lastFiveDT.length - 2];
-        const thirdLast = lastFiveDT[lastFiveDT.length - 3];
-        const fourthLast = lastFiveDT[lastFiveDT.length - 4];
-        
-        // विपरीत (Opposite) मान
-        const opposite = (r) => r === 'D' ? 'T' : 'D';
-
-        // 1. लकीर को फॉलो करना (Follow the Streak - D, D, D, T)
-        if (last === secondLast && secondLast === thirdLast) {
-            // अगर लगातार 3 बार एक ही आया है (D, D, D या T, T, T), तो अब **विपरीत** पर बेट करें।
-            return opposite(last);
-        }
-
-        // 2. बारी-बारी से आने वाला पैटर्न (Alternating Trend - D, T, D, T)
-        if (last !== secondLast && secondLast !== thirdLast && last === thirdLast) {
-            // D, T, D या T, D, T आया है, तो अगले की भी वैसी ही उम्मीद करें (**ट्रेंड को फॉलो करें**)।
-            return opposite(last); 
-        }
-
-        // 3. डबल पैटर्न (Double Pattern - D, D, T, T, D)
-        if (lastFiveDT.length >= 5) {
-            const fifthLast = lastFiveDT[lastFiveDT.length - 5];
-            if (last === secondLast && thirdLast === fourthLast && fifthLast === thirdLast && last !== thirdLast) {
-                // T, T, D, D, T आया है - यह डबल-डबल पैटर्न टूटने का संकेत है।
-                return opposite(last);
-            }
-        }
-        
-        // 4. डिफ़ॉल्ट (Default) - कोई स्पष्ट पैटर्न नहीं, तो विपरीत पर बेट करें
-        // अगर आखिरी वाला T है, तो D बताएं (और T को बार-बार फॉलो करने से बचें)
-        return opposite(last);
-    }
-
-    // कोड लोड होने पर डिस्प्ले को इनिशियलाइज़ करें
-    updateDisplayAndPredict();
-</script>
-
+    <footer>
+        <p>&copy; 2023 My Styled Page. All rights reserved.</p>
+    </footer>
 </body>
 </html>
