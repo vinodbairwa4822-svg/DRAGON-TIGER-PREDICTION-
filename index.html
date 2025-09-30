@@ -1,127 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dragon Tiger Real-Time Predictor</title>
+    <meta charset="UTF-8">
+    <title>Dragon Tiger Predictor</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
-        h1 { color: #333; }
-        button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
-        #history { font-weight: bold; }
-        .prediction-box { background: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+        input { padding: 5px; margin: 5px; width: 30px; text-align: center; }
+        #history { margin-top: 20px; font-size: 16px; }
+        #prediction { margin-top: 20px; font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
+    <h1>Dragon Tiger Predictor</h1>
 
-    <h1>Dragon Tiger Real-Time Predictor</h1>
+    <div id="initial-input">
+        <h3>Enter last 5 results (D/T/H):</h3>
+        <input type="text" id="input1" maxlength="1">
+        <input type="text" id="input2" maxlength="1">
+        <input type="text" id="input3" maxlength="1">
+        <input type="text" id="input4" maxlength="1">
+        <input type="text" id="input5" maxlength="1">
+        <button onclick="startPrediction()">Start</button>
+    </div>
 
-    <button onclick="addResult('D')">Dragon (D)</button>
-    <button onclick="addResult('T')">Tiger (T)</button>
-    <button onclick="addResult('H')">Tie (H)</button>
+    <div id="buttons" style="display:none;">
+        <button onclick="addResult('D')">Dragon (D)</button>
+        <button onclick="addResult('T')">Tiger (T)</button>
+        <button onclick="addResult('H')">Tie (H)</button>
+    </div>
 
-    <div id="results">
+    <div id="history">
         <h3>History:</h3>
-        <p id="history"></p>
+        <p id="history-text"></p>
     </div>
 
-    <div class="prediction-box">
-        <h3>Prediction:</h3>
-        <p id="prediction"></p>
-    </div>
-
-<script>
-let results = [];
-
-function addResult(latest) {
-    results.push(latest);
-    updateHistory();
-    let prediction = predictNext(results);
-    displayPrediction(prediction);
-}
-
-function updateHistory() {
-    document.getElementById("history").innerText = results.join(" ");
-}
-
-function handToHandAnalysis(results) {
-    let repeats = { D: 0, T: 0, H: 0 };
-    for (let i = 1; i < results.length; i++) {
-        if (results[i] === results[i - 1]) repeats[results[i]]++;
-    }
-    return repeats;
-}
-
-// ✅ FIX 1: Division by Zero Error को रोका गया
-function calculatePercentages(repeats) {
-    let total = repeats.D + repeats.T + repeats.H;
-    
-    // अगर कुल रिपीट 0 है, तो 0.00% रिटर्न करें
-    if (total === 0) {
-        return {
-            D: "0.00",
-            T: "0.00",
-            H: "0.00"
-        };
-    }
-
-    return {
-        D: ((repeats.D / total) * 100).toFixed(2),
-        T: ((repeats.T / total) * 100).toFixed(2),
-        H: ((repeats.H / total) * 100).toFixed(2)
-    };
-}
-
-function detectPatterns(results) {
-    let patterns = {};
-    for (let len = 2; len <= Math.min(5, results.length); len++) {
-        let pattern = results.slice(-len).join("");
-        patterns[pattern] = (patterns[pattern] || 0) + 1;
-    }
-    return patterns;
-}
-
-function predictNext(results) {
-    let repeats = handToHandAnalysis(results);
-    let probabilities = calculatePercentages(repeats);
-
-    let patterns = detectPatterns(results);
-    let sortedPatterns = Object.entries(patterns).sort((a,b) => b[1] - a[1]);
-
-    // ✅ FIX 2: String से Number में बदलकर तुलना की गई
-    let numProbabilities = {
-        D: parseFloat(probabilities.D),
-        T: parseFloat(probabilities.T),
-        H: parseFloat(probabilities.H)
-    };
-
-    let maxProb = Math.max(numProbabilities.D, numProbabilities.T, numProbabilities.H);
-    
-    // अधिकतम प्रोबेबिलिटी वाला रिजल्ट ढूँढें
-    let predicted = Object.keys(numProbabilities).find(k => numProbabilities[k] == maxProb);
-
-    // अगर कोई प्रेडिक्शन नहीं है (सभी 0%) तो 'D' को डिफ़ॉल्ट प्रेडिक्शन रखें।
-    if (!predicted) predicted = 'D'; 
-
-    let betStrategy = bettingStrategy(probabilities, predicted);
-
-    return { predicted, probabilities, betStrategy, patterns: sortedPatterns };
-}
-
-function bettingStrategy(probabilities, predicted) {
-    // यहाँ भी String को Number में बदलकर तुलना की जा रही है
-    let chance = parseFloat(probabilities[predicted]); 
-    if (chance > 75) return "TRIPLE BET";
-    if (chance > 60) return "DOUBLE BET";
-    return "SINGLE BET";
-}
-
-function displayPrediction(prediction) {
-    document.getElementById("prediction").innerHTML =
-        `Next Prediction: <b>${prediction.predicted}</b><br>` +
-        `Probability: D: ${prediction.probabilities.D}%, T: ${prediction.probabilities.T}%, H: ${prediction.probabilities.H}%<br>` +
-        `Suggested Bet: <b>${prediction.betStrategy}</b><br>` +
-        `<small>Detected Patterns: ${prediction.patterns.map(p => p[0]+"("+p[1]+")").join(", ")}</small>`;
-}
-</script>
-
-</body>
-</html>
+    <div id="prediction">
+        <h3>Prediction
