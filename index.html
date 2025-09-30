@@ -1,38 +1,151 @@
-<div id="initial-input">
-    <h3>Enter last 5 results (D/T/H):</h3>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dragon Tiger Smart Predictor</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 450px; margin: 0 auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; }
+        #main-controls button { background-color: #f44336; color: white; width: 100%; margin: 10px 0; }
+        #history-text { font-size: 1.1em; color: #333; word-break: break-all; }
+        #prediction-text { font-size: 2em; font-weight: bold; color: #008CBA; margin-top: 10px; }
+        h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 15px; }
+        .data-stats { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 10px; padding: 5px; border: 1px dashed #ddd; }
+    </style>
+</head>
+<body>
 
-    <!-- Buttons -->
-    <div style="display:flex; justify-content:space-around; margin-bottom:10px;">
-        <button onclick="addInitialResult('D')">Dragon (D)</button>
-        <button onclick="addInitialResult('T')">Tiger (T)</button>
-        <button onclick="addInitialResult('H')">Tie (H)</button>
+<div class="container">
+
+    <div id="main-controls">
+        <button onclick="addRandomResult()">Add Next Result (Random D/T/H)</button>
+    </div>
+    
+    <hr>
+
+    <div id="stats">
+        <h3>डेटा सारांश (D/T/H)</h3>
+        <div class="data-stats">
+            <span id="dt-count">D/T परिणाम: 0</span>
+            <span id="d-percent">D %: 0%</span>
+            <span id="t-percent">T %: 0%</span>
+        </div>
+    </div>
+    
+    <div id="history">
+        <h3>History (पिछले 20 D/T):</h3>
+        <p id="history-text">कोई परिणाम नहीं...</p>
     </div>
 
-    <!-- Column input boxes -->
-    <div style="display:flex; flex-direction:column; width:60px;">
-        <input type="text" id="input1" maxlength="1" style="margin-bottom:5px;">
-        <input type="text" id="input2" maxlength="1" style="margin-bottom:5px;">
-        <input type="text" id="input3" maxlength="1" style="margin-bottom:5px;">
-        <input type="text" id="input4" maxlength="1" style="margin-bottom:5px;">
-        <input type="text" id="input5" maxlength="1" style="margin-bottom:5px;">
+    <div id="prediction">
+        <h3>Smart Prediction:</h3>
+        <p id="prediction-text">परिणाम जोड़कर ट्रेंड शुरू करें...</p>
     </div>
 
-    <!-- Start button -->
-    <button onclick="startPrediction()" style="margin-top:10px;">Start</button>
 </div>
 
-<div id="buttons" style="display:none; margin-top:20px;">
-    <button onclick="addResult('D')">Dragon (D)</button>
-    <button onclick="addResult('T')">Tiger (T)</button>
-    <button onclick="addResult('H')">Tie (H)</button>
-</div>
+<script>
+    let fullHistory = []; // सभी D, T, H को स्टोर करने के लिए
+    const MAX_DT_ENTRIES = 25; // अधिकतम D/T एंट्री
 
-<div id="history">
-    <h3>History:</h3>
-    <p id="history-text"></p>
-</div>
+    // यह फ़ंक्शन D, T, या H में से एक Randomly चुनता है (Tie 10% संभावना)
+    function getRandomResult() {
+        const rand = Math.random();
+        if (rand < 0.45) return 'D';
+        if (rand < 0.90) return 'T';
+        return 'H'; // 10% chance for H
+    }
 
-<div id="prediction">
-    <h3>Prediction:</h3>
-    <p id="prediction-text"></p>
-</div>
+    // परिणाम (Result) जोड़ने का मुख्य फ़ंक्शन (Randomly)
+    function addRandomResult() {
+        const newResult = getRandomResult();
+        fullHistory.push(newResult);
+        
+        // डेटा कैपिंग लॉजिक
+        let dtHistory = fullHistory.filter(r => r !== 'H');
+        
+        if (dtHistory.length > MAX_DT_ENTRIES) {
+            // 25 से ज़्यादा होने पर, सबसे पुराने 5 D/T परिणामों को हटा दें
+            const deleteCount = dtHistory.length - (MAX_DT_ENTRIES - 5); // 25 होने पर 5 डिलीट होंगे
+            for (let i = 0; i < deleteCount; i++) {
+                // fullHistory से भी सबसे पुराना D/T हटाएँ
+                const indexToRemove = fullHistory.findIndex(r => r !== 'H');
+                if (indexToRemove !== -1) {
+                    fullHistory.splice(indexToRemove, 1);
+                }
+            }
+        }
+
+        updateDisplayAndPredict();
+    }
+
+    // डिस्प्ले और सांख्यिकी (Stats) अपडेट करना
+    function updateDisplayAndPredict() {
+        // D/T इतिहास, अधिकतम 20 ही दिखाएंगे
+        const dtHistory = fullHistory.filter(r => r !== 'H');
+        const displayHistory = dtHistory.slice(-20); // आखिरी 20 D/T दिखाएँ
+        
+        document.getElementById('history-text').textContent = displayHistory.join(' → ');
+        
+        // सांख्यिकी (Stats) कैलकुलेट करना
+        const dCount = dtHistory.filter(r => r === 'D').length;
+        const tCount = dtHistory.filter(r => r === 'T').length;
+        const totalDT = dCount + tCount;
+
+        document.getElementById('dt-count').textContent = `D/T परिणाम: ${totalDT}`;
+        document.getElementById('d-percent').textContent = `D %: ${totalDT > 0 ? ((dCount / totalDT) * 100).toFixed(1) : 0}%`;
+        document.getElementById('t-percent').textContent = `T %: ${totalDT > 0 ? ((tCount / totalDT) * 100).toFixed(1) : 0}%`;
+
+        // प्रेडिक्शन लॉजिक
+        if (totalDT >= 3) {
+            const prediction = getSmartPrediction(dtHistory);
+            document.getElementById('prediction-text').textContent = prediction;
+        } else {
+            document.getElementById('prediction-text').textContent = 'कम से कम 3 D/T परिणाम जोड़ें...';
+        }
+    }
+
+    // स्मार्ट प्रेडिक्शन लॉजिक (सबसे महत्वपूर्ण हिस्सा!)
+    function getSmartPrediction(lastFiveDT) {
+        if (lastFiveDT.length < 3) return 'और परिणाम चाहिए (कम से कम 3 D/T)';
+
+        const last = lastFiveDT[lastFiveDT.length - 1];
+        const secondLast = lastFiveDT[lastFiveDT.length - 2];
+        const thirdLast = lastFiveDT[lastFiveDT.length - 3];
+        const fourthLast = lastFiveDT[lastFiveDT.length - 4];
+        
+        // विपरीत (Opposite) मान
+        const opposite = (r) => r === 'D' ? 'T' : 'D';
+
+        // 1. लकीर को फॉलो करना (Follow the Streak - D, D, D, T)
+        if (last === secondLast && secondLast === thirdLast) {
+            // अगर लगातार 3 बार एक ही आया है (D, D, D या T, T, T), तो अब **विपरीत** पर बेट करें।
+            return opposite(last);
+        }
+
+        // 2. बारी-बारी से आने वाला पैटर्न (Alternating Trend - D, T, D, T)
+        if (last !== secondLast && secondLast !== thirdLast && last === thirdLast) {
+            // D, T, D या T, D, T आया है, तो अगले की भी वैसी ही उम्मीद करें (**ट्रेंड को फॉलो करें**)।
+            return opposite(last); 
+        }
+
+        // 3. डबल पैटर्न (Double Pattern - D, D, T, T, D)
+        if (lastFiveDT.length >= 5) {
+            const fifthLast = lastFiveDT[lastFiveDT.length - 5];
+            if (last === secondLast && thirdLast === fourthLast && fifthLast === thirdLast && last !== thirdLast) {
+                // T, T, D, D, T आया है - यह डबल-डबल पैटर्न टूटने का संकेत है।
+                return opposite(last);
+            }
+        }
+        
+        // 4. डिफ़ॉल्ट (Default) - कोई स्पष्ट पैटर्न नहीं, तो विपरीत पर बेट करें
+        // अगर आखिरी वाला T है, तो D बताएं (और T को बार-बार फॉलो करने से बचें)
+        return opposite(last);
+    }
+
+    // कोड लोड होने पर डिस्प्ले को इनिशियलाइज़ करें
+    updateDisplayAndPredict();
+</script>
+
+</body>
+</html>
