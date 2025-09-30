@@ -1,137 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dragon Tiger Prediction App</title>
-<style>
-    body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f4; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
-    header { background-color: #333; color: white; padding: 1em 0; text-align: center; }
-    nav { background-color: #555; color: white; padding: 0.5em 0; text-align: center; }
-    nav a { color: white; text-decoration: none; padding: 0 1em; }
-    nav a:hover { text-decoration: underline; }
-    .container { flex-grow: 1; padding: 2em; max-width: 800px; margin: 20px auto; background-color: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-    footer { background-color: #333; color: white; text-align: center; padding: 1em 0; margin-top: auto; }
-    .buttons { text-align: center; margin-bottom: 20px; }
-    .buttons button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; }
-    .dragon { background-color: #4CAF50; color: white; }
-    .tiger { background-color: #f44336; color: white; }
-    .tie { background-color: #ff9800; color: white; }
-    #history, #prediction, #stats, #errorLog { background: #eee; padding: 10px; border-radius: 5px; min-height: 50px; margin-top: 10px; }
-</style>
+    <title>Dragon Tiger Trend Break Predictor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+        }
+        .prediction-box, .statistics-box, .error-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+    </style>
 </head>
 <body>
 
-<header>
-    <h1>Dragon Tiger Prediction App</h1>
-</header>
+<h1>Dragon Tiger Trend Break Predictor</h1>
 
-<nav>
-    <a href="#">Home</a>
-    <a href="#">About</a>
-    <a href="#">Services</a>
-    <a href="#">Contact</a>
-</nav>
+<button onclick="addResult('D')">Dragon (D)</button>
+<button onclick="addResult('T')">Tiger (T)</button>
+<button onclick="addResult('H')">Tie (H)</button>
 
-<div class="container">
-    <h2>Enter Results</h2>
-    <div class="buttons">
-        <button class="dragon" onclick="addResult('D')">Dragon</button>
-        <button class="tiger" onclick="addResult('T')">Tiger</button>
-        <button class="tie" onclick="addResult('H')">Tie</button>
-    </div>
-
-    <h3>History</h3>
-    <div id="history">No entries yet.</div>
-
-    <h3>Prediction</h3>
-    <div id="prediction">Not enough data to predict.</div>
-
-    <h3>Statistics</h3>
-    <div id="stats">Pass: 0 | Fail: 0 | Accuracy: 0%</div>
-
-    <h3>Error Analysis</h3>
-    <div id="errorLog">No error logs yet.</div>
+<div class="prediction-box">
+    <h3>History:</h3>
+    <p id="history"></p>
 </div>
 
-<footer>
-    <p>&copy; 2025 Dragon Tiger Predictor. All rights reserved.</p>
-</footer>
+<div class="prediction-box">
+    <h3>Prediction:</h3>
+    <p id="prediction">Predict: - | Accuracy: 0%</p>
+</div>
+
+<div class="statistics-box">
+    <h3>Statistics:</h3>
+    <p>Pass: <span id="passCount">0</span> | Fail: <span id="failCount">0</span> | Accuracy: <span id="accuracy">0%</span></p>
+</div>
+
+<div class="error-box">
+    <h3>Error Analysis:</h3>
+    <p id="errorAnalysis">No errors detected yet.</p>
+</div>
 
 <script>
-let historyList = JSON.parse(localStorage.getItem("historyList")) || [];
-let passCount = parseInt(localStorage.getItem("passCount")) || 0;
-let failCount = parseInt(localStorage.getItem("failCount")) || 0;
-let lastPrediction = localStorage.getItem("lastPrediction") || "";
-
-updateDisplay();
+let history = [];
+let predictions = [];
+let correctCount = 0;
+let failCount = 0;
+let currentTrend = null; // D या T
 
 function addResult(result) {
-    if (result === "H") {
-        location.reload();
-        return;
-    }
+    history.push(result);
 
-    if (lastPrediction) {
-        if (lastPrediction === result) {
-            passCount++;
+    let prediction = makePrediction();
+
+    if (prediction) {
+        predictions.push(prediction);
+        if (prediction === result) {
+            correctCount++;
         } else {
             failCount++;
+            // Trend टूट गया → adjust करना
+            currentTrend = result;
         }
-    }
-
-    historyList.push(result);
-    localStorage.setItem("historyList", JSON.stringify(historyList));
-    localStorage.setItem("passCount", passCount);
-    localStorage.setItem("failCount", failCount);
-
-    updatePrediction();
-    updateDisplay();
-}
-
-function updatePrediction() {
-    if (historyList.length < 2) {
-        document.getElementById("prediction").innerText = "Not enough data to predict.";
-        lastPrediction = "";
-        localStorage.setItem("lastPrediction", lastPrediction);
-        return;
-    }
-
-    let recentTrend = historyList.slice(-5); // Latest 5 results
-    let dragonCount = recentTrend.filter(x => x === "D").length;
-    let tigerCount = recentTrend.filter(x => x === "T").length;
-
-    if (dragonCount === tigerCount) {
-        lastPrediction = recentTrend[recentTrend.length - 1] === "D" ? "T" : "D"; // Tie case
     } else {
-        lastPrediction = dragonCount > tigerCount ? "D" : "T";
+        currentTrend = result;
     }
 
-    let accuracy = passCount / (passCount + failCount || 1) * 100;
+    document.getElementById("history").textContent = history.join(", ");
 
-    if (accuracy < 70 && historyList.length > 5) {
-        lastPrediction = lastPrediction === "D" ? "T" : "D";
-        document.getElementById("errorLog").innerText = "Low accuracy detected, self-correction applied!";
+    let accuracyPercent = predictions.length > 0 ? ((correctCount / predictions.length) * 100).toFixed(2) : 0;
+    document.getElementById("prediction").textContent = prediction ? `Predict: ${prediction} | Accuracy: ${accuracyPercent}%` : "Predict: - | Accuracy: 0%";
+
+    document.getElementById("passCount").textContent = correctCount;
+    document.getElementById("failCount").textContent = failCount;
+    document.getElementById("accuracy").textContent = accuracyPercent + "%";
+
+    document.getElementById("errorAnalysis").textContent = accuracyPercent < 50 ? "Low accuracy detected, trend adjusted!" : "Prediction accuracy is good.";
+}
+
+function makePrediction() {
+    if (history.length < 2) {
+        return null; // पर्याप्त डेटा नहीं है
+    }
+
+    let last = history[history.length - 1];
+    let secondLast = history[history.length - 2];
+
+    // अगर trend पहले से है और टूट नहीं रहा
+    if (currentTrend && last === currentTrend) {
+        return currentTrend;
+    }
+
+    // अगर trend टूट रहा है → नया trend set करें
+    if (last === secondLast) {
+        currentTrend = last;
+        return currentTrend;
     } else {
-        document.getElementById("errorLog").innerText = "Following latest trend.";
+        currentTrend = last;
+        return currentTrend;
     }
-
-    localStorage.setItem("lastPrediction", lastPrediction);
-
-    document.getElementById("prediction").innerText =
-        `Predict: ${lastPrediction === "D" ? "Dragon (D)" : "Tiger (T)"} | Accuracy: ${accuracy.toFixed(2)}%`;
-}
-
-function updateDisplay() {
-    document.getElementById("history").innerText = historyList.length ? historyList.join(", ") : "No entries yet.";
-    updatePrediction();
-    updateStats();
-}
-
-function updateStats() {
-    let accuracy = passCount / (passCount + failCount || 1) * 100;
-    document.getElementById("stats").innerText =
-        `Pass: ${passCount} | Fail: ${failCount} | Accuracy: ${accuracy.toFixed(2)}%`;
 }
 </script>
 
