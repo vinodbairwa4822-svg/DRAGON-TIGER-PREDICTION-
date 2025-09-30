@@ -96,7 +96,7 @@
     <h3>History</h3>
     <div id="history">No entries yet.</div>
     <h3>Prediction</h3>
-    <div id="prediction">No prediction yet.</div>
+    <div id="prediction">Not enough data to predict.</div>
 </div>
 
 <footer>
@@ -107,6 +107,10 @@
 let historyList = [];
 
 function addResult(result) {
+    if (result === "H") {
+        location.reload(); // Tie aaye to page refresh
+        return;
+    }
     historyList.push(result);
     document.getElementById("history").innerText = historyList.join(", ");
     updatePrediction();
@@ -121,11 +125,11 @@ function updatePrediction() {
     let last = historyList[historyList.length - 1];
     let secondLast = historyList[historyList.length - 2];
 
-    // Simple prediction logic: follow pattern
+    // Simple prediction logic: trend follow
     if (last === secondLast) {
-        document.getElementById("prediction").innerText = last === "D" ? "Predict: Dragon" : "Predict: Tiger";
+        document.getElementById("prediction").innerText = last === "D" ? "Predict: Dragon (D)" : "Predict: Tiger (T)";
     } else {
-        document.getElementById("prediction").innerText = "Predict: Tie or random";
+        document.getElementById("prediction").innerText = "Predict: Tiger (T)";
     }
 }
 </script>
