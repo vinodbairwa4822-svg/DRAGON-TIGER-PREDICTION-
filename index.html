@@ -62,3 +62,42 @@ function calculatePercentages(repeats) {
 function detectPatterns(results) {
     let patterns = {};
     for (let len = 2; len <= Math.min(5, results.length); len++) {
+        let pattern = results.slice(-len).join("");
+        patterns[pattern] = (patterns[pattern] || 0) + 1;
+    }
+    return patterns;
+}
+
+function predictNext(results) {
+    let repeats = handToHandAnalysis(results);
+    let probabilities = calculatePercentages(repeats);
+
+    let patterns = detectPatterns(results);
+    let sortedPatterns = Object.entries(patterns).sort((a,b) => b[1] - a[1]);
+
+    let maxProb = Math.max(probabilities.D, probabilities.T, probabilities.H);
+    let predicted = Object.keys(probabilities).find(k => probabilities[k] == maxProb);
+
+    let betStrategy = bettingStrategy(probabilities, predicted);
+
+    return { predicted, probabilities, betStrategy, patterns: sortedPatterns };
+}
+
+function bettingStrategy(probabilities, predicted) {
+    let chance = probabilities[predicted];
+    if (chance > 75) return "TRIPLE BET";
+    if (chance > 60) return "DOUBLE BET";
+    return "SINGLE BET";
+}
+
+function displayPrediction(prediction) {
+    document.getElementById("prediction").innerHTML =
+        `Next Prediction: <b>${prediction.predicted}</b><br>` +
+        `Probability: D: ${prediction.probabilities.D}%, T: ${prediction.probabilities.T}%, H: ${prediction.probabilities.H}%<br>` +
+        `Suggested Bet: <b>${prediction.betStrategy}</b><br>` +
+        `<small>Detected Patterns: ${prediction.patterns.map(p => p[0]+"("+p[1]+")").join(", ")}</small>`;
+}
+</script>
+
+</body>
+</html>
