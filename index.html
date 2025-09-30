@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dragon Tiger HQ Self-Learning Predictor</title>
+<title>Dragon Tiger Prediction App</title>
 <style>
     body { font-family: Arial, sans-serif; margin: 0; background-color: #f4f4f4; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
     header { background-color: #333; color: white; padding: 1em 0; text-align: center; }
     nav { background-color: #555; color: white; padding: 0.5em 0; text-align: center; }
     nav a { color: white; text-decoration: none; padding: 0 1em; }
     nav a:hover { text-decoration: underline; }
-    .container { flex-grow: 1; padding: 2em; max-width: 800px; margin: 20px auto; background-color: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .container { flex-grow: 1; padding: 2em; max-width: 800px; margin: 20px auto; background-color: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
     footer { background-color: #333; color: white; text-align: center; padding: 1em 0; margin-top: auto; }
     .buttons { text-align: center; margin-bottom: 20px; }
     .buttons button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; }
@@ -23,7 +23,7 @@
 <body>
 
 <header>
-    <h1>Dragon Tiger HQ Self-Learning Predictor</h1>
+    <h1>Dragon Tiger Prediction App</h1>
 </header>
 
 <nav>
@@ -40,121 +40,9 @@
         <button class="tiger" onclick="addResult('T')">Tiger</button>
         <button class="tie" onclick="addResult('H')">Tie</button>
     </div>
+
     <h3>History</h3>
     <div id="history">No entries yet.</div>
+
     <h3>Prediction</h3>
     <div id="prediction">Not enough data to predict.</div>
-    <h3>Stats</h3>
-    <div id="stats">
-        Pass Count: <span id="passCount">0</span><br>
-        Fail Count: <span id="failCount">0</span><br>
-        Accuracy: <span id="accuracy">0%</span>
-    </div>
-</div>
-
-<footer>
-    <p>&copy; 2025 Dragon Tiger HQ Self-Learning Predictor. All rights reserved.</p>
-</footer>
-
-<script>
-let historyList = [];
-let passCount = 0;
-let failCount = 0;
-let patterns = {};
-let accuracyThreshold = 75; // Accuracy limit before self-correction
-
-function loadPatterns() {
-    let stored = localStorage.getItem("dragonTigerPatterns");
-    if (stored) patterns = JSON.parse(stored);
-}
-
-function savePatterns() {
-    localStorage.setItem("dragonTigerPatterns", JSON.stringify(patterns));
-}
-
-function savePattern() {
-    let patternKey = historyList.join(",");
-    patterns[patternKey] = (patterns[patternKey] || 0) + 1;
-    savePatterns();
-}
-
-function getBestPattern() {
-    loadPatterns();
-    let maxCount = 0;
-    let bestPattern = null;
-    for (let key in patterns) {
-        if (patterns[key] > maxCount) {
-            maxCount = patterns[key];
-            bestPattern = key;
-        }
-    }
-    return bestPattern ? bestPattern.split(",") : [];
-}
-
-function getPrediction() {
-    let bestPattern = getBestPattern();
-    if (bestPattern.length < 2) return "";
-    let last = bestPattern[bestPattern.length - 1];
-    return last === "D" ? "D" : "T";
-}
-
-function checkSelfCorrection() {
-    let total = passCount + failCount;
-    let accuracy = total > 0 ? ((passCount / total) * 100) : 100;
-    if (accuracy < accuracyThreshold) {
-        console.log("⚠️ Accuracy low (" + accuracy.toFixed(2) + "%), self-correcting...");
-        patterns = {}; // clear old patterns
-        savePatterns();
-    }
-}
-
-function addResult(result) {
-    if (result === "H") {
-        location.reload();
-        return;
-    }
-
-    let prediction = getPrediction();
-
-    if (prediction === result) {
-        passCount++;
-    } else {
-        failCount++;
-    }
-
-    historyList.push(result);
-    savePattern();
-    checkSelfCorrection();
-
-    document.getElementById("history").innerText = historyList.join(", ");
-    updatePrediction();
-    updateStats();
-}
-
-function updatePrediction() {
-    if (historyList.length < 2) {
-        document.getElementById("prediction").innerText = "Not enough data to predict.";
-        return;
-    }
-    let pred = getPrediction();
-    document.getElementById("prediction").innerText = pred === "D" ? "Predict: Dragon (D)" : "Predict: Tiger (T)";
-}
-
-function updateStats() {
-    document.getElementById("passCount").innerText = passCount;
-    document.getElementById("failCount").innerText = failCount;
-    let total = passCount + failCount;
-    let accuracy = total > 0 ? ((passCount / total) * 100).toFixed(2) : 0;
-    document.getElementById("accuracy").innerText = accuracy + "%";
-}
-
-window.onload = function() {
-    loadPatterns();
-    historyList = getBestPattern();
-    updatePrediction();
-    updateStats();
-};
-</script>
-
-</body>
-</html>
