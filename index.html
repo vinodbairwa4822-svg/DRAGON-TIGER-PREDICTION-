@@ -17,7 +17,7 @@
     .dragon { background-color: #4CAF50; color: white; }
     .tiger { background-color: #f44336; color: white; }
     .tie { background-color: #ff9800; color: white; }
-    #history, #prediction, #stats { background: #eee; padding: 10px; border-radius: 5px; min-height: 50px; margin-top: 10px; }
+    #history, #prediction, #stats, #errorLog { background: #eee; padding: 10px; border-radius: 5px; min-height: 50px; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -46,3 +46,94 @@
 
     <h3>Prediction</h3>
     <div id="prediction">Not enough data to predict.</div>
+
+    <h3>Statistics</h3>
+    <div id="stats">Pass: 0 | Fail: 0 | Accuracy: 0%</div>
+
+    <h3>Error Analysis</h3>
+    <div id="errorLog">No error logs yet.</div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Dragon Tiger Predictor. All rights reserved.</p>
+</footer>
+
+<script>
+let historyList = JSON.parse(localStorage.getItem("historyList")) || [];
+let passCount = parseInt(localStorage.getItem("passCount")) || 0;
+let failCount = parseInt(localStorage.getItem("failCount")) || 0;
+let lastPrediction = localStorage.getItem("lastPrediction") || "";
+
+updateDisplay();
+
+function addResult(result) {
+    if (result === "H") {
+        location.reload();
+        return;
+    }
+
+    if (lastPrediction) {
+        if (lastPrediction === result) {
+            passCount++;
+        } else {
+            failCount++;
+        }
+    }
+
+    historyList.push(result);
+    localStorage.setItem("historyList", JSON.stringify(historyList));
+    localStorage.setItem("passCount", passCount);
+    localStorage.setItem("failCount", failCount);
+
+    updatePrediction();
+    updateDisplay();
+}
+
+function updatePrediction() {
+    if (historyList.length < 2) {
+        document.getElementById("prediction").innerText = "Not enough data to predict.";
+        lastPrediction = "";
+        localStorage.setItem("lastPrediction", lastPrediction);
+        return;
+    }
+
+    let recentTrend = historyList.slice(-5); // Latest 5 results
+    let dragonCount = recentTrend.filter(x => x === "D").length;
+    let tigerCount = recentTrend.filter(x => x === "T").length;
+
+    if (dragonCount === tigerCount) {
+        lastPrediction = recentTrend[recentTrend.length - 1] === "D" ? "T" : "D"; // Tie case
+    } else {
+        lastPrediction = dragonCount > tigerCount ? "D" : "T";
+    }
+
+    let accuracy = passCount / (passCount + failCount || 1) * 100;
+
+    if (accuracy < 70 && historyList.length > 5) {
+        lastPrediction = lastPrediction === "D" ? "T" : "D";
+        document.getElementById("errorLog").innerText = "Low accuracy detected, self-correction applied!";
+    } else {
+        document.getElementById("errorLog").innerText = "Following latest trend.";
+    }
+
+    localStorage.setItem("lastPrediction", lastPrediction);
+
+    document.getElementById("prediction").innerText =
+        `Predict: ${lastPrediction === "D" ? "Dragon (D)" : "Tiger (T)"} | Accuracy: ${accuracy.toFixed(2)}%`;
+}
+
+function updateDisplay() {
+    document.getElementById("history").innerText = historyList.length ? historyList.join(", ") : "No entries yet.";
+    updatePrediction();
+    updateStats();
+}
+
+function updateStats() {
+    let accuracy = passCount / (passCount + failCount || 1) * 100;
+    document.getElementById("stats").innerText =
+        `Pass: ${passCount} | Fail: ${failCount} | Accuracy: ${accuracy.toFixed(2)}%`;
+}
+</script>
+
+</body>
+</html>
