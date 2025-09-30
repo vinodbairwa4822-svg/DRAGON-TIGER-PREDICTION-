@@ -1,140 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dragon vs Tiger Predictor</title>
+    <title>Dragon Tiger Real-Time Predictor</title>
     <style>
-        #buttonContainer {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            justify-content: space-around;
-        }
-        .buttonGroup {
-            margin: 0 10px;
-            text-align: center;
-        }
-        .patternBox {
-            width: 30px;
-            height: 30px;
-            margin: 2px;
-            text-align: center;
-            line-height: 30px;
-            font-weight: bold;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .D { background-color: lightcoral; } /* Red */
-        .T { background-color: lightgoldenrodyellow; } /* Yellow */
-        .Tie { background-color: lightgrey; }
-
-        button {
-            padding: 10px;
-            margin-top: 5px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #dragonBtn { background-color: lightcoral; }
-        #tigerBtn { background-color: lightgoldenrodyellow; }
-        #tieBtn { background-color: lightgrey; }
+        body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; }
+        h1 { color: #333; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; cursor: pointer; }
+        #history { font-weight: bold; }
+        .prediction-box { background: #fff; padding: 15px; border-radius: 8px; margin-top: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <h2>Dragon vs Tiger Interactive Predictor</h2>
 
-    <div id="buttonContainer">
-        <div class="buttonGroup">
-            <div id="percentD">Dragon: 0%</div>
-            <button id="dragonBtn" onclick="addPattern('D')">Dragon (D)</button>
-        </div>
-        <div class="buttonGroup">
-            <div id="percentT">Tiger: 0%</div>
-            <button id="tigerBtn" onclick="addPattern('T')">Tiger (T)</button>
-        </div>
-        <div class="buttonGroup">
-            <div id="percentTie">Tie: 0%</div>
-            <button id="tieBtn" onclick="addPattern('Tie')">Tie</button>
-        </div>
+    <h1>Dragon Tiger Real-Time Predictor</h1>
+
+    <button onclick="addResult('D')">Dragon (D)</button>
+    <button onclick="addResult('T')">Tiger (T)</button>
+    <button onclick="addResult('H')">Tie (H)</button>
+
+    <div id="results">
+        <h3>History:</h3>
+        <p id="history"></p>
     </div>
 
-    <div id="patternContainer" style="display:flex; flex-wrap:wrap;"></div>
+    <div class="prediction-box">
+        <h3>Prediction:</h3>
+        <p id="prediction"></p>
+    </div>
 
-    <h3 id="result"></h3>
+<script>
+let results = [];
 
-    <script>
-        let patterns = [];
+function addResult(latest) {
+    results.push(latest);
+    updateHistory();
+    let prediction = predictNext(results);
+    displayPrediction(prediction);
+}
 
-        function addPattern(symbol) {
-            patterns.push(symbol);
+function updateHistory() {
+    document.getElementById("history").innerText = results.join(" ");
+}
 
-            let container = document.getElementById("patternContainer");
-            let box = document.createElement("div");
-            box.className = "patternBox " + symbol;
-            box.innerText = symbol === "Tie" ? "Tie" : symbol;
-            container.appendChild(box);
+function handToHandAnalysis(results) {
+    let repeats = { D: 0, T: 0, H: 0 };
+    for (let i = 1; i < results.length; i++) {
+        if (results[i] === results[i - 1]) repeats[results[i]]++;
+    }
+    return repeats;
+}
 
-            if (patterns.length > 15) {
-                patterns.shift();
-                container.removeChild(container.firstChild);
-            }
+function calculatePercentages(repeats) {
+    let total = repeats.D + repeats.T + repeats.H;
+    return {
+        D: ((repeats.D / total) * 100).toFixed(2),
+        T: ((repeats.T / total) * 100).toFixed(2),
+        H: ((repeats.H / total) * 100).toFixed(2)
+    };
+}
 
-            updatePercentages();
-            predict();
-        }
-
-        function updatePercentages() {
-            let lastSymbols = patterns.filter(s => s !== "Tie");
-            let countD = lastSymbols.filter(s => s === "D").length;
-            let countT = lastSymbols.filter(s => s === "T").length;
-            let countTie = patterns.filter(s => s === "Tie").length;
-            let total = countD + countT;
-
-            let percentD = total > 0 ? ((countD / total) * 100).toFixed(2) : 0;
-            let percentT = total > 0 ? ((countT / total) * 100).toFixed(2) : 0;
-            let percentTie = patterns.length > 0 ? ((countTie / patterns.length) * 100).toFixed(2) : 0;
-
-            document.getElementById("percentD").innerText = `Dragon: ${percentD}%`;
-            document.getElementById("percentT").innerText = `Tiger: ${percentT}%`;
-            document.getElementById("percentTie").innerText = `Tie: ${percentTie}%`;
-        }
-
-        function predict() {
-            let lastSymbols = patterns.filter(s => s !== "Tie");
-            let countD = lastSymbols.filter(s => s === "D").length;
-            let countT = lastSymbols.filter(s => s === "T").length;
-            let total = countD + countT;
-
-            if (total === 0) {
-                document.getElementById("result").innerText = "Add patterns to predict.";
-                return;
-            }
-
-            let percentD = ((countD / total) * 100).toFixed(2);
-            let percentT = ((countT / total) * 100).toFixed(2);
-
-            let trend = "";
-            let prediction = "";
-
-            let lastThree = lastSymbols.slice(-3).join("");
-            if (lastThree === "DDD") trend = "Dragon trend 🐉";
-            else if (lastThree === "TTT") trend = "Tiger trend 🐅";
-            else trend = "No strong trend";
-
-            if (percentD > percentT && trend.includes("Dragon")) {
-                prediction = `<span style="color:red">Dragon (D)</span> ✅ — ${percentD}% chance`;
-            } else if (percentT > percentD && trend.includes("Tiger")) {
-                prediction = `<span style="color:goldenrod">Tiger (T)</span> ✅ — ${percentT}% chance`;
-            } else if (percentD === percentT) {
-                prediction = `Tie ⚖️ — Dragon: ${percentD}%, Tiger: ${percentT}%`;
-            } else {
-                prediction = percentD > percentT
-                    ? `<span style="color:red">Dragon (D)</span> — ${percentD}% chance`
-                    : `<span style="color:goldenrod">Tiger (T)</span> — ${percentT}% chance`;
-            }
-
-            document.getElementById("result").innerHTML = `<b>Prediction:</b> ${prediction}<br><b>Trend:</b> ${trend}`;
-        }
-    </script>
-</body>
-</html>
+function detectPatterns(results) {
+    let patterns = {};
+    for (let len = 2; len <= Math.min(5, results.length); len++) {
