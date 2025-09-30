@@ -1,27 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dragon Tiger Trend Break Predictor</title>
+    <title>Dragon Tiger Trend Predictor</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        button {
-            margin: 5px;
-            padding: 10px 20px;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin: 5px; padding: 10px 20px; }
         .prediction-box, .statistics-box, .error-box {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            margin-top: 20px; padding: 10px; border: 1px solid #ddd; border-radius: 8px;
         }
     </style>
 </head>
 <body>
 
-<h1>Dragon Tiger Trend Break Predictor</h1>
+<h1>Dragon Tiger Trend Tracker</h1>
 
 <button onclick="addResult('D')">Dragon (D)</button>
 <button onclick="addResult('T')">Tiger (T)</button>
@@ -34,77 +25,72 @@
 
 <div class="prediction-box">
     <h3>Prediction:</h3>
-    <p id="prediction">Predict: - | Accuracy: 0%</p>
+    <p id="prediction">Predict: -</p>
 </div>
 
 <div class="statistics-box">
     <h3>Statistics:</h3>
-    <p>Pass: <span id="passCount">0</span> | Fail: <span id="failCount">0</span> | Accuracy: <span id="accuracy">0%</span></p>
+    <p>Pass: <span id="passCount">0</span> | Fail: <span id="failCount">0</span></p>
 </div>
 
 <div class="error-box">
     <h3>Error Analysis:</h3>
-    <p id="errorAnalysis">No errors detected yet.</p>
+    <p id="errorAnalysis">No errors yet.</p>
 </div>
 
 <script>
 let history = [];
-let predictions = [];
 let correctCount = 0;
 let failCount = 0;
-let currentTrend = null; // D या T
+let currentTrend = null;
 
 function addResult(result) {
     history.push(result);
 
-    let prediction = makePrediction();
+    detectTrend();
+
+    let prediction = currentTrend;
 
     if (prediction) {
-        predictions.push(prediction);
         if (prediction === result) {
             correctCount++;
         } else {
             failCount++;
-            // Trend टूट गया → adjust करना
-            currentTrend = result;
+            detectTrend(); // trend break → re-check trend
         }
-    } else {
-        currentTrend = result;
     }
 
-    document.getElementById("history").textContent = history.join(", ");
+    updateUI(prediction);
+}
 
-    let accuracyPercent = predictions.length > 0 ? ((correctCount / predictions.length) * 100).toFixed(2) : 0;
-    document.getElementById("prediction").textContent = prediction ? `Predict: ${prediction} | Accuracy: ${accuracyPercent}%` : "Predict: - | Accuracy: 0%";
+function detectTrend() {
+    if (history.length < 2) {
+        currentTrend = history[history.length - 1] || null;
+        return;
+    }
+
+    // Count D and T in recent history
+    let countD = history.filter(r => r === "D").length;
+    let countT = history.filter(r => r === "T").length;
+
+    // Majority decide trend
+    if (countD > countT) {
+        currentTrend = "D";
+    } else if (countT > countD) {
+        currentTrend = "T";
+    } else {
+        currentTrend = history[history.length - 1]; // tie → last result
+    }
+}
+
+function updateUI(prediction) {
+    document.getElementById("history").textContent = history.join(", ");
+    document.getElementById("prediction").textContent = prediction ? `Predict: ${prediction}` : "Predict: -";
 
     document.getElementById("passCount").textContent = correctCount;
     document.getElementById("failCount").textContent = failCount;
-    document.getElementById("accuracy").textContent = accuracyPercent + "%";
 
-    document.getElementById("errorAnalysis").textContent = accuracyPercent < 50 ? "Low accuracy detected, trend adjusted!" : "Prediction accuracy is good.";
-}
-
-function makePrediction() {
-    if (history.length < 2) {
-        return null; // पर्याप्त डेटा नहीं है
-    }
-
-    let last = history[history.length - 1];
-    let secondLast = history[history.length - 2];
-
-    // अगर trend पहले से है और टूट नहीं रहा
-    if (currentTrend && last === currentTrend) {
-        return currentTrend;
-    }
-
-    // अगर trend टूट रहा है → नया trend set करें
-    if (last === secondLast) {
-        currentTrend = last;
-        return currentTrend;
-    } else {
-        currentTrend = last;
-        return currentTrend;
-    }
+    document.getElementById("errorAnalysis").textContent = failCount > correctCount ? "Low accuracy detected!" : "Prediction accuracy is good.";
 }
 </script>
 
